@@ -6,6 +6,7 @@ mod four;
 mod five;
 mod six;
 mod seven;
+mod eight;
 
 fn main() {
     let day: u32;
@@ -36,6 +37,7 @@ fn main() {
         5 => five::solve(),
         6 => six::solve(),
         7 => seven::solve(),
+        8 => eight::solve(),
         _ => {
             println!("Day {} not (yet) solved.", day);
         }
