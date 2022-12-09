@@ -62,6 +62,8 @@ impl Rope {
         for movement in &self.head.movements {
             match movement {
                 Direction::Down(d) => {
+                    // add a movement to the knot
+                    self.knots[pos].movements.push(Direction::Down(*d));
                     // move to the down
                     for _i in 0..*d {
                         self.head.y -= 1;
@@ -77,6 +79,8 @@ impl Rope {
                     }
                 },
                 Direction::Up(u) => {
+                    // add a movement to the knot
+                    self.knots[pos].movements.push(Direction::Up(*u));
                     // move to the up
                     for _i in 0..*u {
                         self.head.y += 1;
@@ -92,6 +96,8 @@ impl Rope {
                     }
                 },
                 Direction::Left(l) => {
+                    // add a movement to the knot
+                    self.knots[pos].movements.push(Direction::Left(*l));
                     // move to the left
                     for _i in 0..*l {
                         self.head.x -= 1;
@@ -107,6 +113,8 @@ impl Rope {
                     }
                 },
                 Direction::Right(r) => {
+                    // add a movement to the knot
+                    self.knots[pos].movements.push(Direction::Right(*r));
                     // move to the right
                     for _i in 0..*r {
                         self.head.x += 1;
@@ -140,6 +148,7 @@ struct Head {
 struct Knot {
     pub x: i32,
     pub y: i32,
+    pub movements: Vec<Direction>,
     pub visited: Vec<(i32, i32)>,
 }
 
@@ -154,6 +163,7 @@ fn parse_input(input_file: &str) -> Rope {
     let mut knot = Knot {
         x: 0,
         y: 0,
+        movements: Vec::new(),
         visited: Vec::new(),
     };
     knot.visited.push((0,0));
@@ -201,6 +211,7 @@ mod test {
             knots : vec![Knot {
                 x: 0,
                 y: 0,
+                movements: Vec::new(),
                 visited: vec![(0, 0)],
             }],
             length: 1,
@@ -215,6 +226,7 @@ mod test {
             knots : vec![Knot {
                 x: 3,
                 y: 0,
+                movements: vec![Direction::Right(4)],
                 visited: vec![(0, 0), (1, 0), (2, 0), (3, 0)],
             }],
             length: 1,
@@ -233,6 +245,7 @@ mod test {
             knots : vec![Knot {
                 x: 1,
                 y: 0,
+                movements: Vec::new(),
                 visited: vec![(1, 0)],
             }],
             length: 1,
@@ -247,6 +260,7 @@ mod test {
             knots : vec![Knot {
                 x: 2,
                 y: 0,
+                movements: vec![Direction::Right(3)],
                 visited: vec![(1, 0), (2, 0)],
             }],
             length: 1,
@@ -265,6 +279,7 @@ mod test {
             knots : vec![Knot {
                 x: 0,
                 y: 1,
+                movements: Vec::new(),
                 visited: vec![(0, 1)],
             }],
             length: 1,
@@ -279,6 +294,7 @@ mod test {
             knots : vec![Knot {
                 x: 2,
                 y: 0,
+                movements: vec![Direction::Right(3)],
                 visited: vec![(0, 1), (1, 0), (2, 0)],
             }],
             length: 1,
@@ -297,6 +313,7 @@ mod test {
             knots : vec![Knot {
                 x: 4,
                 y: 3,
+                movements: Vec::new(),
                 visited: vec![(4, 3)],
             }],
             length: 1,
@@ -311,6 +328,7 @@ mod test {
             knots : vec![Knot {
                 x: 1,
                 y: 2,
+                movements: vec![Direction::Left(5)],
                 visited: vec![(4, 3), (3, 2), (2, 2), (1, 2)],
             }],
             length: 1,
