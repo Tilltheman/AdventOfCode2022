@@ -60,8 +60,8 @@ struct Rope {
 impl Rope {
     fn update_knots(&mut self) {
         let knots = self.knots.clone();
-        for i in 1..knots.len() {
-            self.update_knot(i-1, i);
+        for i in 1..10 /*knots.len()*/ {
+            self.update_knot_v2(i-1, i);
         }
     }
     fn update_knot(&mut self, pos_prev: usize, pos: usize) {
@@ -91,7 +91,7 @@ impl Rope {
                     // move to the up
                     for _i in 0..*u {
                         self.knots[pos_prev].y += 1;
-                        if (self.knots[pos_prev].y - self.knots[pos].y).abs() > self.length {
+                        if (self.knots[pos_prev].y - self.knots[pos].y).abs() > self.length+ pos_prev as i32 {
                             self.knots[pos].y += 1;
                             if self.knots[pos].x != self.knots[pos_prev].x {
                                 self.knots[pos].x = self.knots[pos_prev].x;
@@ -108,7 +108,7 @@ impl Rope {
                     // move to the left
                     for _i in 0..*l {
                         self.knots[pos_prev].x -= 1;
-                        if (self.knots[pos_prev].x - self.knots[pos].x).abs() > self.length {
+                        if (self.knots[pos_prev].x - self.knots[pos].x).abs() > self.length+ pos_prev as i32 {
                             self.knots[pos].x -= 1;
                             if self.knots[pos].y != self.knots[pos_prev].y {
                                 self.knots[pos].y = self.knots[pos_prev].y;
@@ -120,12 +120,13 @@ impl Rope {
                     }
                 },
                 Direction::Right(r) => {
+                    println!("====== Moving right ======");
                     // add a movement to the knot
                     self.knots[pos].movements.push(Direction::Right(*r));
                     // move to the right
                     for _i in 0..*r {
                         self.knots[pos_prev].x += 1;
-                        if (self.knots[pos_prev].x - self.knots[pos].x).abs() > self.length {
+                        if (self.knots[0].x - self.knots[pos].x).abs() > self.length+ pos_prev as i32 {
                             self.knots[pos].x += 1;
                             if self.knots[pos].y != self.knots[pos_prev].y {
                                self.knots[pos].y = self.knots[pos_prev].y;
@@ -135,12 +136,14 @@ impl Rope {
                             self.knots[pos].visited.push((x, y));
                         }
                     }
+                    println!("{:?}", self.knots[pos]);
                 },
             };
         }
     }
     fn amount_visited(&self, pos: usize) -> usize {
         let unique: Vec<_> = self.knots[pos].visited.iter().unique().collect();
+        println!("{:?}", unique);
         return unique.len();
     }
 }
@@ -159,7 +162,7 @@ struct Knot {
     pub visited: Vec<(i32, i32)>,
 }
 
-fn parse_input(input_file: &str) -> Rope {
+fn parse_input(input_file: &str, part_two: bool) -> Rope {
     let binding = fs::read_to_string(input_file).unwrap();
     let input = binding.lines().collect::<Vec<&str>>();
     let head = Knot {
@@ -181,11 +184,22 @@ fn parse_input(input_file: &str) -> Rope {
     };
     let input: Vec<Direction> = input.iter().map(|line| Direction::from_str(line).unwrap()).collect::<Vec<_>>();
     rope.knots[0].movements = input;
+    if part_two {
+        for _i in 0..9 {
+            let knot = Knot {
+                x: 0,
+                y: 0,
+                movements: Vec::new(),
+                visited: vec![(0,0)],
+            };
+            rope.knots.push(knot);
+        }
+    }
     rope
 }
 
 fn solve_part1(input: &str) -> u32 {
-    let mut rope = parse_input(input);
+    let mut rope = parse_input(input, false);
     rope.update_knots();
     //println!("{:?}", rope.head);
     //println!("{:?}", rope.knot);
@@ -193,9 +207,12 @@ fn solve_part1(input: &str) -> u32 {
 }
 
 fn solve_part2(input: &str) -> u32 {
-    let rope = parse_input(input);
-    let mut max = 0;
-    max
+    let mut rope = parse_input(input, true);
+    rope.update_knots();
+    rope.update_knots();
+    let amount = rope.amount_visited(9);
+    println!("{}", amount);
+    amount as u32
 }
 
 pub fn solve() {
@@ -367,9 +384,106 @@ mod test {
     }
 
     #[test]
-    fn test_sample_part2() {
-        let expected: u32 = 8;
-        let output = solve_part2("src/nine/sample-input.txt");
-        assert_eq!(expected, output);
+    fn test_move_right_four_steps_len_ten() {
+        let mut initial = Rope {
+            knots: vec![
+            Knot {
+                x: 0,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(5, 2)],
+            },
+            Knot {
+                x: 0,
+                y: 0,
+                movements: Vec::new(),
+                visited: vec![(0, 0)],
+            }],
+            length: 1,
+        };
+        for _i in 2..10 {
+            let knot = Knot {
+                x: 0,
+                y: 0,
+                movements: Vec::new(),
+                visited: vec![(0,0)],
+            };
+            initial.knots.push(knot);
+        }
+        initial.update_knots();
+        let expected = Rope {
+            knots : vec![
+            Knot {
+                x: 4,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
+            },
+            Knot {
+                x: 3,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0), (1, 0), (2, 0), (3, 0)],
+            },
+            Knot {
+                x: 2,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0), (1, 0), (2, 0)],
+            },
+            Knot {
+                x: 1,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0), (1, 0)],
+            },
+            Knot {
+                x: 0,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
+            },
+            Knot {
+                x: 0,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
+            },
+            Knot {
+                x: 0,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
+            },
+            Knot {
+                x: 0,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
+            },
+            Knot {
+                x: 0,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
+            },
+            Knot {
+                x: 0,
+                y: 0,
+                movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
+            },
+
+            ],
+            length: 1,
+        };
+        assert_eq!(expected, initial);
     }
+
+/*    #[test]
+    fn test_sample_part2() {
+        let expected: u32 = 36;
+        let output = solve_part2("src/nine/bigger-input.txt");
+        assert_eq!(expected, output);
+    } */
 }
