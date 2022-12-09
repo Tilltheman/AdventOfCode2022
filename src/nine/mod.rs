@@ -5,7 +5,7 @@ use std::num::ParseIntError;
 use regex::Regex;
 use lazy_static::lazy_static;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 enum Direction {
     Up(i32),
     Down(i32),
@@ -52,25 +52,32 @@ impl FromStr for Direction {
 
 #[derive(Debug, Eq, PartialEq)]
 struct Rope {
-    pub head: Head,
+/*    pub head: Head, */
     pub knots: Vec<Knot>,
     pub length: i32,
 }
 
 impl Rope {
-    fn update_knot(&mut self, pos: usize) {
-        for movement in &self.head.movements {
+    fn update_knots(&mut self) {
+        let knots = self.knots.clone();
+        for i in 1..knots.len() {
+            self.update_knot(i-1, i);
+        }
+    }
+    fn update_knot(&mut self, pos_prev: usize, pos: usize) {
+        let movements = &self.knots[pos_prev].movements.clone();
+        for movement in movements {
             match movement {
                 Direction::Down(d) => {
                     // add a movement to the knot
                     self.knots[pos].movements.push(Direction::Down(*d));
                     // move to the down
                     for _i in 0..*d {
-                        self.head.y -= 1;
-                        if (self.head.y - self.knots[pos].y).abs() > self.length {
+                        self.knots[pos_prev].y -= 1;
+                        if (self.knots[pos_prev].y - self.knots[pos].y).abs() > self.length {
                             self.knots[pos].y -= 1;
-                            if self.knots[pos].x != self.head.x {
-                                self.knots[pos].x = self.head.x;
+                            if self.knots[pos].x != self.knots[pos_prev].x {
+                                self.knots[pos].x = self.knots[pos_prev].x;
                             }
                             let x = self.knots[pos].x;
                             let y = self.knots[pos].y;
@@ -83,11 +90,11 @@ impl Rope {
                     self.knots[pos].movements.push(Direction::Up(*u));
                     // move to the up
                     for _i in 0..*u {
-                        self.head.y += 1;
-                        if (self.head.y - self.knots[pos].y).abs() > self.length {
+                        self.knots[pos_prev].y += 1;
+                        if (self.knots[pos_prev].y - self.knots[pos].y).abs() > self.length {
                             self.knots[pos].y += 1;
-                            if self.knots[pos].x != self.head.x {
-                                self.knots[pos].x = self.head.x;
+                            if self.knots[pos].x != self.knots[pos_prev].x {
+                                self.knots[pos].x = self.knots[pos_prev].x;
                             }
                             let x = self.knots[pos].x;
                             let y = self.knots[pos].y;
@@ -100,11 +107,11 @@ impl Rope {
                     self.knots[pos].movements.push(Direction::Left(*l));
                     // move to the left
                     for _i in 0..*l {
-                        self.head.x -= 1;
-                        if (self.head.x - self.knots[pos].x).abs() > self.length {
+                        self.knots[pos_prev].x -= 1;
+                        if (self.knots[pos_prev].x - self.knots[pos].x).abs() > self.length {
                             self.knots[pos].x -= 1;
-                            if self.knots[pos].y != self.head.y {
-                                self.knots[pos].y = self.head.y;
+                            if self.knots[pos].y != self.knots[pos_prev].y {
+                                self.knots[pos].y = self.knots[pos_prev].y;
                             }
                             let x = self.knots[pos].x;
                             let y = self.knots[pos].y;
@@ -117,11 +124,11 @@ impl Rope {
                     self.knots[pos].movements.push(Direction::Right(*r));
                     // move to the right
                     for _i in 0..*r {
-                        self.head.x += 1;
-                        if (self.head.x - self.knots[pos].x).abs() > self.length {
+                        self.knots[pos_prev].x += 1;
+                        if (self.knots[pos_prev].x - self.knots[pos].x).abs() > self.length {
                             self.knots[pos].x += 1;
-                            if self.knots[pos].y != self.head.y {
-                               self.knots[pos].y = self.head.y;
+                            if self.knots[pos].y != self.knots[pos_prev].y {
+                               self.knots[pos].y = self.knots[pos_prev].y;
                             }
                             let x = self.knots[pos].x;
                             let y = self.knots[pos].y;
@@ -132,19 +139,19 @@ impl Rope {
             };
         }
     }
-    fn amount_visited(&self) -> usize {
-        let unique: Vec<_> = self.knots[0].visited.iter().unique().collect();
+    fn amount_visited(&self, pos: usize) -> usize {
+        let unique: Vec<_> = self.knots[pos].visited.iter().unique().collect();
         return unique.len();
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+/*#[derive(Debug, Eq, PartialEq)]
 struct Head {
     pub x: i32,
     pub y: i32,
     pub movements: Vec<Direction>
-}
-#[derive(Debug, Eq, PartialEq)]
+} */
+#[derive(Debug, Eq, PartialEq, Clone)]
 struct Knot {
     pub x: i32,
     pub y: i32,
@@ -155,10 +162,11 @@ struct Knot {
 fn parse_input(input_file: &str) -> Rope {
     let binding = fs::read_to_string(input_file).unwrap();
     let input = binding.lines().collect::<Vec<&str>>();
-    let head = Head {
+    let head = Knot {
         x: 0,
         y: 0,
         movements: Vec::new(),
+        visited: vec![(0,0)]
     };
     let mut knot = Knot {
         x: 0,
@@ -168,21 +176,20 @@ fn parse_input(input_file: &str) -> Rope {
     };
     knot.visited.push((0,0));
     let mut rope = Rope {
-        head: head,
-        knots: vec![knot],
+        knots: vec![head, knot],
         length: 1,
     };
     let input: Vec<Direction> = input.iter().map(|line| Direction::from_str(line).unwrap()).collect::<Vec<_>>();
-    rope.head.movements = input;
+    rope.knots[0].movements = input;
     rope
 }
 
 fn solve_part1(input: &str) -> u32 {
     let mut rope = parse_input(input);
-    rope.update_knot(0);
+    rope.update_knots();
     //println!("{:?}", rope.head);
     //println!("{:?}", rope.knot);
-    rope.amount_visited() as u32
+    rope.amount_visited(1) as u32
 }
 
 fn solve_part2(input: &str) -> u32 {
@@ -203,12 +210,14 @@ mod test {
     #[test]
     fn test_move_right_four_steps() {
         let mut initial = Rope {
-            head : Head {
+            knots: vec![
+            Knot {
                 x: 0,
                 y: 0,
                 movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
             },
-            knots : vec![Knot {
+            Knot {
                 x: 0,
                 y: 0,
                 movements: Vec::new(),
@@ -216,14 +225,16 @@ mod test {
             }],
             length: 1,
         };
-        initial.update_knot(0);
+        initial.update_knot(0,1);
         let expected = Rope {
-            head: Head {
+            knots: vec![
+            Knot {
                 x: 4,
                 y: 0,
                 movements: vec![Direction::Right(4)],
+                visited: vec![(0, 0)],
             },
-            knots : vec![Knot {
+            Knot {
                 x: 3,
                 y: 0,
                 movements: vec![Direction::Right(4)],
@@ -237,12 +248,14 @@ mod test {
     #[test]
     fn test_move_right_three_steps_with_knot_right_of_head() {
         let mut initial = Rope {
-            head : Head {
+            knots : vec![
+            Knot {
                 x: 0,
                 y: 0,
                 movements: vec![Direction::Right(3)],
+                visited: vec![(0, 0)],
             },
-            knots : vec![Knot {
+            Knot {
                 x: 1,
                 y: 0,
                 movements: Vec::new(),
@@ -250,14 +263,16 @@ mod test {
             }],
             length: 1,
         };
-        initial.update_knot(0);
+        initial.update_knot(0,1);
         let expected = Rope {
-            head: Head {
+            knots : vec![
+            Knot {
                 x: 3,
                 y: 0,
                 movements: vec![Direction::Right(3)],
+                visited: vec![(0, 0)],
             },
-            knots : vec![Knot {
+            Knot {
                 x: 2,
                 y: 0,
                 movements: vec![Direction::Right(3)],
@@ -271,12 +286,14 @@ mod test {
     #[test]
     fn test_move_right_three_steps_with_knot_above_head() {
         let mut initial = Rope {
-            head : Head {
+            knots: vec![
+            Knot {
                 x: 0,
                 y: 0,
                 movements: vec![Direction::Right(3)],
+                visited: vec![(0, 0)],
             },
-            knots : vec![Knot {
+            Knot {
                 x: 0,
                 y: 1,
                 movements: Vec::new(),
@@ -284,14 +301,16 @@ mod test {
             }],
             length: 1,
         };
-        initial.update_knot(0);
+        initial.update_knot(0,1);
         let expected = Rope {
-            head: Head {
+            knots : vec![
+            Knot {
                 x: 3,
                 y: 0,
                 movements: vec![Direction::Right(3)],
+                visited: vec![(0, 0)],
             },
-            knots : vec![Knot {
+            Knot {
                 x: 2,
                 y: 0,
                 movements: vec![Direction::Right(3)],
@@ -305,12 +324,14 @@ mod test {
     #[test]
     fn test_move_left_five_steps_with_knot_above_and_left_of_head() {
         let mut initial = Rope {
-            head : Head {
+            knots: vec![
+            Knot {
                 x: 5,
                 y: 2,
                 movements: vec![Direction::Left(5)],
+                visited: vec![(5, 2)],
             },
-            knots : vec![Knot {
+            Knot {
                 x: 4,
                 y: 3,
                 movements: Vec::new(),
@@ -318,14 +339,16 @@ mod test {
             }],
             length: 1,
         };
-        initial.update_knot(0);
+        initial.update_knot(0,1);
         let expected = Rope {
-            head: Head {
+            knots : vec![
+            Knot {
                 x: 0,
                 y: 2,
                 movements: vec![Direction::Left(5)],
+                visited: vec![(5, 2)],
             },
-            knots : vec![Knot {
+            Knot {
                 x: 1,
                 y: 2,
                 movements: vec![Direction::Left(5)],
