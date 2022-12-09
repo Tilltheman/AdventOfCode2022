@@ -1,4 +1,5 @@
 use std::{env, process};
+
 mod one;
 mod two;
 mod three;
@@ -7,6 +8,7 @@ mod five;
 mod six;
 mod seven;
 mod eight;
+mod nine;
 
 fn main() {
     let day: u32;
@@ -38,6 +40,7 @@ fn main() {
         6 => six::solve(),
         7 => seven::solve(),
         8 => eight::solve(),
+        9 => nine::solve(),
         _ => {
             println!("Day {} not (yet) solved.", day);
         }
