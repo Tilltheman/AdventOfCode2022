@@ -67,14 +67,14 @@ impl Rope {
                     // move to the down
                     for _i in 0..*d {
                         self.head.y -= 1;
-                        if (self.head.y - self.knots[0].y).abs() > self.length {
-                            self.knots[0].y -= 1;
-                            if self.knots[0].x != self.head.x {
-                                self.knots[0].x = self.head.x;
+                        if (self.head.y - self.knots[pos].y).abs() > self.length {
+                            self.knots[pos].y -= 1;
+                            if self.knots[pos].x != self.head.x {
+                                self.knots[pos].x = self.head.x;
                             }
-                            let x = self.knots[0].x;
-                            let y = self.knots[0].y;
-                            self.knots[0].visited.push((x, y));
+                            let x = self.knots[pos].x;
+                            let y = self.knots[pos].y;
+                            self.knots[pos].visited.push((x, y));
                         }
                     }
                 },
@@ -84,14 +84,14 @@ impl Rope {
                     // move to the up
                     for _i in 0..*u {
                         self.head.y += 1;
-                        if (self.head.y - self.knots[0].y).abs() > self.length {
-                            self.knots[0].y += 1;
-                            if self.knots[0].x != self.head.x {
-                                self.knots[0].x = self.head.x;
+                        if (self.head.y - self.knots[pos].y).abs() > self.length {
+                            self.knots[pos].y += 1;
+                            if self.knots[pos].x != self.head.x {
+                                self.knots[pos].x = self.head.x;
                             }
-                            let x = self.knots[0].x;
-                            let y = self.knots[0].y;
-                            self.knots[0].visited.push((x, y));
+                            let x = self.knots[pos].x;
+                            let y = self.knots[pos].y;
+                            self.knots[pos].visited.push((x, y));
                         }
                     }
                 },
@@ -101,14 +101,14 @@ impl Rope {
                     // move to the left
                     for _i in 0..*l {
                         self.head.x -= 1;
-                        if (self.head.x - self.knots[0].x).abs() > self.length {
-                            self.knots[0].x -= 1;
-                            if self.knots[0].y != self.head.y {
-                                self.knots[0].y = self.head.y;
+                        if (self.head.x - self.knots[pos].x).abs() > self.length {
+                            self.knots[pos].x -= 1;
+                            if self.knots[pos].y != self.head.y {
+                                self.knots[pos].y = self.head.y;
                             }
-                            let x = self.knots[0].x;
-                            let y = self.knots[0].y;
-                            self.knots[0].visited.push((x, y));
+                            let x = self.knots[pos].x;
+                            let y = self.knots[pos].y;
+                            self.knots[pos].visited.push((x, y));
                         }
                     }
                 },
@@ -118,14 +118,14 @@ impl Rope {
                     // move to the right
                     for _i in 0..*r {
                         self.head.x += 1;
-                        if (self.head.x - self.knots[0].x).abs() > self.length {
-                            self.knots[0].x += 1;
-                            if self.knots[0].y != self.head.y {
-                               self.knots[0].y = self.head.y;
+                        if (self.head.x - self.knots[pos].x).abs() > self.length {
+                            self.knots[pos].x += 1;
+                            if self.knots[pos].y != self.head.y {
+                               self.knots[pos].y = self.head.y;
                             }
-                            let x = self.knots[0].x;
-                            let y = self.knots[0].y;
-                            self.knots[0].visited.push((x, y));
+                            let x = self.knots[pos].x;
+                            let y = self.knots[pos].y;
+                            self.knots[pos].visited.push((x, y));
                         }
                     }
                 },
