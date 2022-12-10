@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use std::fmt;
 use std::fs;
 use std::str::FromStr;
 use std::num::ParseIntError;
@@ -57,6 +58,29 @@ struct Rope {
     pub length: i32,
 }
 
+impl fmt::Display for Rope {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut display: Vec<Vec<char>> = vec![vec!['.'; 40];40];
+        let mut counter = 1;
+        let knots = self.knots.clone();
+        for knot in knots.iter().rev() {
+            display[(knot.x+12) as usize][(knot.y + 5) as usize] = char::from_u32(counter+65).unwrap();
+            counter += 1;
+        }
+        display[(self.head.x+12) as usize][(self.head.y +5) as usize] = 'H';
+        if display[12][5] == '.' {
+            display[12][5] = 's';
+        }
+        for x in (0..40).rev() {
+            for y in 0..40 {
+                write!(f, "{}", display[y][x])?;
+            }
+            write!(f, "\n")?;
+        }
+        Ok(())
+    }
+}
+
 impl Rope {
     fn update_knot(&mut self, pos: usize) {
         for movement in &self.head.movements {
@@ -75,6 +99,7 @@ impl Rope {
                             self.knots[0].visited.push((x, y));
                         }
                     }
+                    println!("{}", self);
                 },
                 Direction::Up(u) => {
                     // move to the up
@@ -90,6 +115,7 @@ impl Rope {
                             self.knots[0].visited.push((x, y));
                         }
                     }
+                    println!("{}", self);
                 },
                 Direction::Left(l) => {
                     // move to the left
@@ -105,6 +131,7 @@ impl Rope {
                             self.knots[0].visited.push((x, y));
                         }
                     }
+                    println!("{}", self);
                 },
                 Direction::Right(r) => {
                     // move to the right
@@ -120,6 +147,7 @@ impl Rope {
                             self.knots[0].visited.push((x, y));
                         }
                     }
+                    println!("{}", self);
                 },
             };
         }
@@ -136,7 +164,7 @@ struct Head {
     pub y: i32,
     pub movements: Vec<Direction>
 }
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 struct Knot {
     pub x: i32,
     pub y: i32,
@@ -176,9 +204,10 @@ fn solve_part1(input: &str) -> u32 {
 }
 
 fn solve_part2(input: &str) -> u32 {
-    let rope = parse_input(input);
-    let mut max = 0;
-    max
+    let mut rope = parse_input(input);
+    rope.length = 10;
+    rope.update_knot(0);
+    rope.amount_visited() as u32
 }
 
 pub fn solve() {
@@ -327,8 +356,8 @@ mod test {
 
     #[test]
     fn test_sample_part2() {
-        let expected: u32 = 8;
-        let output = solve_part2("src/nine/sample-input.txt");
+        let expected: u32 = 36;
+        let output = solve_part2("src/nine/bigger-input.txt");
         assert_eq!(expected, output);
     }
 }
